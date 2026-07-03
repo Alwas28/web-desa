@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="id" class="">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SI Desa — Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          colors: {
+            // Tema dinamis lewat CSS variables (diisi via JS)
+            brand: {
+              50:  'rgb(var(--brand-50) / <alpha-value>)',
+              100: 'rgb(var(--brand-100) / <alpha-value>)',
+              500: 'rgb(var(--brand-500) / <alpha-value>)',
+              600: 'rgb(var(--brand-600) / <alpha-value>)',
+              700: 'rgb(var(--brand-700) / <alpha-value>)'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .ti { font-size: 1.25rem; line-height: 1; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-thumb { background: rgba(120,120,120,.3); border-radius: 8px; }
+    /* Tema default (hijau) — di-override oleh JS */
+    :root {
+      --brand-50: 236 253 245; --brand-100: 209 250 229;
+      --brand-500: 16 185 129; --brand-600: 5 150 105; --brand-700: 4 120 87;
+    }
+    .page { display: none; }
+    .page.active { display: block; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-200 antialiased">
+
+  <div class="flex min-h-screen">
+
+    <!-- Sidebar -->
+    <aside id="sidebar"
+      class="fixed lg:static inset-y-0 left-0 z-40 w-64 -translate-x-full lg:translate-x-0 transition-transform duration-300
+             bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col">
+      <div class="flex items-center gap-3 px-5 h-16 border-b border-slate-200 dark:border-slate-800">
+        <div class="grid place-items-center w-9 h-9 rounded-lg bg-brand-600 text-white">
+          <i class="ti ti-building-community"></i>
+        </div>
+        <div class="leading-tight">
+          <div class="font-semibold text-sm">SI Desa</div>
+          <div class="text-xs text-slate-400">Desa Sukamaju</div>
+        </div>
+      </div>
+
+      <nav id="nav" class="flex-1 px-3 py-4 space-y-1 text-sm overflow-y-auto"></nav>
+
+      <div class="flex items-center gap-3 px-4 py-4 border-t border-slate-200 dark:border-slate-800">
+        <div class="grid place-items-center w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-800 text-xs font-semibold">AS</div>
+        <div class="leading-tight">
+          <div class="text-sm font-medium">Andi Saputra</div>
+          <div class="text-xs text-slate-400">Operator Desa</div>
+        </div>
+      </div>
+    </aside>
+
+    <div id="backdrop" class="fixed inset-0 z-30 bg-black/40 lg:hidden hidden"></div>
+
+    <!-- Main -->
+    <div class="flex-1 min-w-0 flex flex-col">
+
+      <!-- Topbar -->
+      <header class="sticky top-0 z-20 h-16 flex items-center gap-3 px-4 sm:px-6
+                     bg-white/80 dark:bg-slate-900/80 backdrop-blur border-b border-slate-200 dark:border-slate-800">
+        <button id="menuBtn" class="lg:hidden grid place-items-center w-10 h-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Buka menu">
+          <i class="ti ti-menu-2"></i>
+        </button>
+
+        <div class="hidden sm:flex items-center gap-2 flex-1 max-w-sm px-3 h-10 rounded-lg bg-slate-100 dark:bg-slate-800">
+          <i class="ti ti-search text-slate-400"></i>
+          <input type="text" placeholder="Cari penduduk, surat, berita…"
+                 class="bg-transparent outline-none text-sm w-full placeholder:text-slate-400" />
+        </div>
+
+        <div class="flex items-center gap-1 ml-auto">
+          <!-- Theme color picker -->
+          <div class="relative">
+            <button id="paletteBtn" class="grid place-items-center w-10 h-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Ganti warna tema">
+              <i class="ti ti-palette"></i>
+            </button>
+            <div id="paletteMenu" class="hidden absolute right-0 mt-2 w-48 p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg z-30">
+              <p class="text-xs font-medium text-slate-400 mb-2 px-1">Warna tema</p>
+              <div id="swatches" class="grid grid-cols-3 gap-2"></div>
+            </div>
+          </div>
+
+          <button id="themeBtn" class="grid place-items-center w-10 h-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Ganti mode terang/gelap">
+            <i class="ti ti-sun hidden dark:inline"></i>
+            <i class="ti ti-moon inline dark:hidden"></i>
+          </button>
+          <button class="relative grid place-items-center w-10 h-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Notifikasi">
+            <i class="ti ti-bell"></i>
+            <span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-500"></span>
+          </button>
+          <div class="grid place-items-center w-9 h-9 rounded-full bg-brand-600 text-white text-xs font-semibold ml-1">AS</div>
+        </div>
+      </header>
+
+      <!-- Content -->
+      <main class="flex-1 p-4 sm:p-6">
+
+        <!-- ============ DASHBOARD ============ -->
+        <section id="page-dashboard" class="page active space-y-6">
+          <div>
+            <h1 class="text-2xl font-semibold">Dashboard</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Ringkasan data Desa Sukamaju.</p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div class="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-slate-500 dark:text-slate-400">Total Penduduk</span>
+                <span class="grid place-items-center w-9 h-9 rounded-lg bg-brand-50 text-brand-600 dark:bg-brand-500/10"><i class="ti ti-users"></i></span>
+              </div>
+              <div class="mt-3 text-2xl font-semibold">4.812</div>
+              <div class="mt-1 text-xs text-slate-400">2.431 L · 2.381 P</div>
+            </div>
+            <div class="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-slate-500 dark:text-slate-400">Kepala Keluarga</span>
+                <span class="grid place-items-center w-9 h-9 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400"><i class="ti ti-home"></i></span>
+              </div>
+              <div class="mt-3 text-2xl font-semibold">1.356</div>
+              <div class="mt-1 text-xs text-slate-400">tersebar di 6 dusun</div>
+            </div>
+            <div class="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-slate-500 dark:text-slate-400">Surat Masuk</span>
+                <span class="grid place-items-center w-9 h-9 rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400"><i class="ti ti-mail"></i></span>
+              </div>
+              <div class="mt-3 text-2xl font-semibold">37</div>
+              <div class="mt-1 text-xs text-amber-600 dark:text-amber-400">8 menunggu proses</div>
+            </div>
+            <div class="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-slate-500 dark:text-slate-400">Saldo APBDes</span>
+                <span class="grid place-items-center w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"><i class="ti ti-wallet"></i></span>
+              </div>
+              <div class="mt-3 text-2xl font-semibold">Rp 612 jt</div>
+              <div class="mt-1 text-xs text-slate-400">per Juni 2026</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div class="lg:col-span-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5">
+              <h2 class="font-semibold mb-4">Penduduk per Dusun</h2>
+              <div id="dusunChart" class="space-y-3"></div>
+            </div>
+            <div class="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5">
+              <h2 class="font-semibold mb-4">Aktivitas terbaru</h2>
+              <ul class="space-y-4 text-sm">
+                <li class="flex gap-3"><span class="grid place-items-center w-8 h-8 rounded-full bg-brand-50 text-brand-600 dark:bg-brand-500/10 shrink-0"><i class="ti ti-user-plus text-base"></i></span><div><p>Penduduk baru ditambahkan</p><p class="text-xs text-slate-400 mt-0.5">10 menit lalu</p></div></li>
+                <li class="flex gap-3"><span class="grid place-items-center w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 shrink-0"><i class="ti ti-check text-base"></i></span><div><p>Surat domisili disetujui</p><p class="text-xs text-slate-400 mt-0.5">1 jam lalu</p></div></li>
+                <li class="flex gap-3"><span class="grid place-items-center w-8 h-8 rounded-full bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400 shrink-0"><i class="ti ti-news text-base"></i></span><div><p>Pengumuman baru diterbitkan</p><p class="text-xs text-slate-400 mt-0.5">3 jam lalu</p></div></li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ PENDUDUK ============ -->
+        <section id="page-penduduk" class="page space-y-6">
+          <div class="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h1 class="text-2xl font-semibold">Data Penduduk</h1>
+              <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Kelola data warga Desa Sukamaju.</p>
+            </div>
+            <button class="flex items-center gap-2 px-4 h-10 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium transition"><i class="ti ti-plus text-base"></i> Tambah Penduduk</button>
+          </div>
+          <div class="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+            <div class="flex flex-wrap items-center gap-2 px-5 py-4 border-b border-slate-200 dark:border-slate-800">
+              <div class="flex items-center gap-2 flex-1 min-w-[200px] max-w-sm px-3 h-9 rounded-lg bg-slate-100 dark:bg-slate-800">
+                <i class="ti ti-search text-slate-400 text-base"></i>
+                <input placeholder="Cari nama / NIK…" class="bg-transparent outline-none text-sm w-full placeholder:text-slate-400" />
+              </div>
+              <button class="flex items-center gap-1.5 px-3 h-9 rounded-lg border border-slate-200 dark:border-slate-700 text-sm hover:bg-slate-50 dark:hover:bg-slate-800"><i class="ti ti-filter text-base"></i> Filter</button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead class="text-left text-slate-400 dark:text-slate-500">
+                  <tr class="border-b border-slate-200 dark:border-slate-800">
+                    <th class="px-5 py-3 font-medium">NIK</th><th class="px-5 py-3 font-medium">Nama</th>
+                    <th class="px-5 py-3 font-medium">L/P</th><th class="px-5 py-3 font-medium">Dusun</th>
+                    <th class="px-5 py-3 font-medium">Pekerjaan</th><th class="px-5 py-3 font-medium text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="pendudukBody" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ DATA KK ============ -->
+        <section id="page-kk" class="page space-y-6">
+          <div class="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h1 class="text-2xl font-semibold">Data Kartu Keluarga</h1>
+              <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Daftar kepala keluarga dan anggotanya.</p>
+            </div>
+            <button class="flex items-center gap-2 px-4 h-10 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium transition"><i class="ti ti-plus text-base"></i> Tambah KK</button>
+          </div>
+          <div class="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="text-left text-slate-400 dark:text-slate-500">
+                <tr class="border-b border-slate-200 dark:border-slate-800">
+                  <th class="px-5 py-3 font-medium">No. KK</th><th class="px-5 py-3 font-medium">Kepala Keluarga</th>
+                  <th class="px-5 py-3 font-medium">Anggota</th><th class="px-5 py-3 font-medium">Alamat</th>
+                  <th class="px-5 py-3 font-medium text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="kkBody" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ============ SURAT & LAYANAN ============ -->
+        <section id="page-surat" class="page space-y-6">
+          <div>
+            <h1 class="text-2xl font-semibold">Surat &amp; Layanan</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Permohonan surat dari warga.</p>
+          </div>
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800"><div class="text-xs text-slate-400">Menunggu</div><div class="text-xl font-semibold mt-1 text-amber-600 dark:text-amber-400">8</div></div>
+            <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800"><div class="text-xs text-slate-400">Diproses</div><div class="text-xl font-semibold mt-1 text-blue-600 dark:text-blue-400">5</div></div>
+            <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800"><div class="text-xs text-slate-400">Selesai</div><div class="text-xl font-semibold mt-1 text-emerald-600 dark:text-emerald-400">24</div></div>
+            <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800"><div class="text-xs text-slate-400">Ditolak</div><div class="text-xl font-semibold mt-1 text-rose-600 dark:text-rose-400">2</div></div>
+          </div>
+          <div class="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="text-left text-slate-400 dark:text-slate-500">
+                <tr class="border-b border-slate-200 dark:border-slate-800">
+                  <th class="px-5 py-3 font-medium">No</th><th class="px-5 py-3 font-medium">Pemohon</th>
+                  <th class="px-5 py-3 font-medium">Jenis Surat</th><th class="px-5 py-3 font-medium">Tanggal</th>
+                  <th class="px-5 py-3 font-medium">Status</th><th class="px-5 py-3 font-medium text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="suratBody" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ============ KEUANGAN / APBDes ============ -->
+        <section id="page-keuangan" class="page space-y-6">
+          <div>
+            <h1 class="text-2xl font-semibold">Keuangan / APBDes</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Anggaran Pendapatan dan Belanja Desa 2026.</p>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800"><div class="text-sm text-slate-400">Pendapatan</div><div class="text-2xl font-semibold mt-1 text-emerald-600 dark:text-emerald-400">Rp 1,42 M</div></div>
+            <div class="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800"><div class="text-sm text-slate-400">Belanja</div><div class="text-2xl font-semibold mt-1 text-rose-600 dark:text-rose-400">Rp 808 jt</div></div>
+            <div class="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800"><div class="text-sm text-slate-400">Saldo</div><div class="text-2xl font-semibold mt-1 text-brand-600">Rp 612 jt</div></div>
+          </div>
+          <div class="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="text-left text-slate-400 dark:text-slate-500">
+                <tr class="border-b border-slate-200 dark:border-slate-800">
+                  <th class="px-5 py-3 font-medium">Tanggal</th><th class="px-5 py-3 font-medium">Uraian</th>
+                  <th class="px-5 py-3 font-medium">Kategori</th><th class="px-5 py-3 font-medium text-right">Jumlah</th>
+                </tr>
+              </thead>
+              <tbody id="keuanganBody" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ============ BERITA & PENGUMUMAN ============ -->
+        <section id="page-berita" class="page space-y-6">
+          <div class="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h1 class="text-2xl font-semibold">Berita &amp; Pengumuman</h1>
+              <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Informasi untuk warga desa.</p>
+            </div>
+            <button class="flex items-center gap-2 px-4 h-10 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium transition"><i class="ti ti-plus text-base"></i> Tulis Berita</button>
+          </div>
+          <div id="beritaGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // ============ DATA NAVIGASI ============
+    const menu = [
+      { id: 'dashboard', label: 'Dashboard', icon: 'ti-layout-dashboard' },
+      { group: 'Data Kependudukan' },
+      { id: 'penduduk', label: 'Data Penduduk', icon: 'ti-users' },
+      { id: 'kk', label: 'Data KK', icon: 'ti-home' },
+      { group: 'Pelayanan' },
+      { id: 'surat', label: 'Surat & Layanan', icon: 'ti-mail' },
+      { id: 'keuangan', label: 'Keuangan / APBDes', icon: 'ti-wallet' },
+      { id: 'berita', label: 'Berita & Pengumuman', icon: 'ti-news' }
+    ];
+
+    const nav = document.getElementById('nav');
+    nav.innerHTML = menu.map(m => {
+      if (m.group) return `<div class="px-3 pt-4 pb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">${m.group}</div>`;
+      return `<a href="#" data-page="${m.id}" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                <i class="ti ${m.icon}"></i> ${m.label}
+              </a>`;
+    }).join('');
+
+    function go(page) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('page-' + page)?.classList.add('active');
+      document.querySelectorAll('.nav-link').forEach(a => {
+        const on = a.dataset.page === page;
+        a.classList.toggle('bg-brand-50', on);
+        a.classList.toggle('text-brand-700', on);
+        a.classList.toggle('dark:bg-brand-500/10', on);
+        a.classList.toggle('dark:text-brand-100', on);
+        a.classList.toggle('font-medium', on);
+        a.classList.toggle('text-slate-600', !on);
+        a.classList.toggle('dark:text-slate-400', !on);
+      });
+      closeSidebar();
+      window.scrollTo({ top: 0 });
+    }
+    nav.addEventListener('click', e => {
+      const link = e.target.closest('.nav-link');
+      if (link) { e.preventDefault(); go(link.dataset.page); }
+    });
+
+    // ============ TEMA WARNA PRESET ============
+    const themes = {
+      hijau:  { name:'Hijau',  c:'#059669', vars:{50:'236 253 245',100:'209 250 229',500:'16 185 129',600:'5 150 105',700:'4 120 87'} },
+      biru:   { name:'Biru',   c:'#2563eb', vars:{50:'239 246 255',100:'219 234 254',500:'59 130 246',600:'37 99 235',700:'29 78 216'} },
+      teal:   { name:'Teal',   c:'#0d9488', vars:{50:'240 253 250',100:'204 251 241',500:'20 184 166',600:'13 148 136',700:'15 118 110'} },
+      ungu:   { name:'Ungu',   c:'#7c3aed', vars:{50:'245 243 255',100:'237 233 254',500:'139 92 246',600:'124 58 237',700:'109 40 217'} },
+      merah:  { name:'Merah',  c:'#dc2626', vars:{50:'254 242 242',100:'254 226 226',500:'239 68 68',600:'220 38 38',700:'185 28 28'} },
+      amber:  { name:'Amber',  c:'#d97706', vars:{50:'255 251 235',100:'254 243 199',500:'245 158 11',600:'217 119 6',700:'180 83 9'} }
+    };
+    function applyTheme(key) {
+      const t = themes[key]; if (!t) return;
+      const r = document.documentElement.style;
+      r.setProperty('--brand-50', t.vars[50]);
+      r.setProperty('--brand-100', t.vars[100]);
+      r.setProperty('--brand-500', t.vars[500]);
+      r.setProperty('--brand-600', t.vars[600]);
+      r.setProperty('--brand-700', t.vars[700]);
+      localStorage.setItem('villageTheme', key);
+      renderDusun(); // perbarui bar berwarna brand
+    }
+    const swatches = document.getElementById('swatches');
+    swatches.innerHTML = Object.entries(themes).map(([k,t]) =>
+      `<button data-theme="${k}" title="${t.name}" class="h-9 rounded-lg border border-slate-200 dark:border-slate-700 grid place-items-center" style="background:${t.c}"><i class="ti ti-check text-white text-base opacity-0"></i></button>`
+    ).join('');
+    swatches.addEventListener('click', e => {
+      const btn = e.target.closest('[data-theme]'); if (!btn) return;
+      applyTheme(btn.dataset.theme);
+      swatches.querySelectorAll('.ti-check').forEach(i => i.classList.add('opacity-0'));
+      btn.querySelector('.ti-check').classList.remove('opacity-0');
+    });
+
+    document.getElementById('paletteBtn').addEventListener('click', e => {
+      e.stopPropagation();
+      document.getElementById('paletteMenu').classList.toggle('hidden');
+    });
+    document.addEventListener('click', e => {
+      if (!e.target.closest('#paletteMenu') && !e.target.closest('#paletteBtn'))
+        document.getElementById('paletteMenu').classList.add('hidden');
+    });
+
+    // ============ DARK MODE ============
+    const root = document.documentElement;
+    const storedMode = localStorage.getItem('mode');
+    if (storedMode === 'dark' || (!storedMode && matchMedia('(prefers-color-scheme: dark)').matches)) root.classList.add('dark');
+    document.getElementById('themeBtn').addEventListener('click', () => {
+      root.classList.toggle('dark');
+      localStorage.setItem('mode', root.classList.contains('dark') ? 'dark' : 'light');
+    });
+
+    // ============ SIDEBAR MOBILE ============
+    const sidebar = document.getElementById('sidebar'), backdrop = document.getElementById('backdrop');
+    const openSidebar = () => { sidebar.classList.remove('-translate-x-full'); backdrop.classList.remove('hidden'); };
+    const closeSidebar = () => { sidebar.classList.add('-translate-x-full'); backdrop.classList.add('hidden'); };
+    document.getElementById('menuBtn').addEventListener('click', openSidebar);
+    backdrop.addEventListener('click', closeSidebar);
+
+    // ============ DATA DUMMY ============
+    const rupiah = n => 'Rp ' + n.toLocaleString('id-ID');
+    const aksiBtns = `
+      <div class="flex justify-end gap-1">
+        <button class="grid place-items-center w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500" aria-label="Lihat"><i class="ti ti-eye text-base"></i></button>
+        <button class="grid place-items-center w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500" aria-label="Edit"><i class="ti ti-edit text-base"></i></button>
+        <button class="grid place-items-center w-8 h-8 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10 text-rose-500" aria-label="Hapus"><i class="ti ti-trash text-base"></i></button>
+      </div>`;
+
+    const penduduk = [
+      ['3201xxxx0001','Siti Aminah','P','Dusun Krajan','Petani'],
+      ['3201xxxx0002','Bambang Wijaya','L','Dusun Sumber','Wiraswasta'],
+      ['3201xxxx0003','Dewi Lestari','P','Dusun Krajan','Guru'],
+      ['3201xxxx0004','Joko Susilo','L','Dusun Tegal','Buruh'],
+      ['3201xxxx0005','Ratna Sari','P','Dusun Sumber','Pedagang'],
+      ['3201xxxx0006','Agus Hidayat','L','Dusun Gunung','Petani']
+    ];
+    document.getElementById('pendudukBody').innerHTML = penduduk.map(p => `
+      <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+        <td class="px-5 py-3 font-mono text-xs text-slate-500">${p[0]}</td>
+        <td class="px-5 py-3 font-medium">${p[1]}</td>
+        <td class="px-5 py-3">${p[2]}</td>
+        <td class="px-5 py-3 text-slate-600 dark:text-slate-300">${p[3]}</td>
+        <td class="px-5 py-3 text-slate-600 dark:text-slate-300">${p[4]}</td>
+        <td class="px-5 py-3">${aksiBtns}</td>
+      </tr>`).join('');
+
+    const kk = [
+      ['3201xxxxKK01','Bambang Wijaya',4,'Dusun Sumber RT 02/01'],
+      ['3201xxxxKK02','Joko Susilo',5,'Dusun Tegal RT 01/03'],
+      ['3201xxxxKK03','Agus Hidayat',3,'Dusun Gunung RT 04/02'],
+      ['3201xxxxKK04','Hendra Gunawan',6,'Dusun Krajan RT 03/01']
+    ];
+    document.getElementById('kkBody').innerHTML = kk.map(k => `
+      <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+        <td class="px-5 py-3 font-mono text-xs text-slate-500">${k[0]}</td>
+        <td class="px-5 py-3 font-medium">${k[1]}</td>
+        <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-md text-xs bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-100">${k[2]} orang</span></td>
+        <td class="px-5 py-3 text-slate-600 dark:text-slate-300">${k[3]}</td>
+        <td class="px-5 py-3">${aksiBtns}</td>
+      </tr>`).join('');
+
+    const badge = {
+      Menunggu:'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400',
+      Diproses:'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400',
+      Selesai:'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400',
+      Ditolak:'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400'
+    };
+    const surat = [
+      ['001','Siti Aminah','Surat Keterangan Domisili','18 Jun 2026','Menunggu'],
+      ['002','Joko Susilo','Surat Keterangan Tidak Mampu','17 Jun 2026','Diproses'],
+      ['003','Dewi Lestari','Surat Pengantar KTP','16 Jun 2026','Selesai'],
+      ['004','Ratna Sari','Surat Keterangan Usaha','15 Jun 2026','Selesai'],
+      ['005','Agus Hidayat','Surat Keterangan Kelahiran','14 Jun 2026','Ditolak']
+    ];
+    document.getElementById('suratBody').innerHTML = surat.map(s => `
+      <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+        <td class="px-5 py-3 text-slate-500">${s[0]}</td>
+        <td class="px-5 py-3 font-medium">${s[1]}</td>
+        <td class="px-5 py-3 text-slate-600 dark:text-slate-300">${s[2]}</td>
+        <td class="px-5 py-3 text-slate-600 dark:text-slate-300">${s[3]}</td>
+        <td class="px-5 py-3"><span class="px-2.5 py-1 rounded-md text-xs font-medium ${badge[s[4]]}">${s[4]}</span></td>
+        <td class="px-5 py-3">${aksiBtns}</td>
+      </tr>`).join('');
+
+    const keuangan = [
+      ['02 Jun 2026','Dana Desa Tahap II','Pendapatan', 420000000],
+      ['05 Jun 2026','Pembangunan jalan dusun','Belanja', -185000000],
+      ['10 Jun 2026','Operasional kantor desa','Belanja', -12500000],
+      ['12 Jun 2026','PADes retribusi pasar','Pendapatan', 8400000],
+      ['15 Jun 2026','Bantuan sosial warga','Belanja', -45000000]
+    ];
+    document.getElementById('keuanganBody').innerHTML = keuangan.map(k => `
+      <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+        <td class="px-5 py-3 text-slate-600 dark:text-slate-300">${k[0]}</td>
+        <td class="px-5 py-3 font-medium">${k[1]}</td>
+        <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-md text-xs ${k[2]==='Pendapatan'?'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400':'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400'}">${k[2]}</span></td>
+        <td class="px-5 py-3 text-right font-medium ${k[3]<0?'text-rose-600 dark:text-rose-400':'text-emerald-600 dark:text-emerald-400'}">${k[3]<0?'-':'+'}${rupiah(Math.abs(k[3]))}</td>
+      </tr>`).join('');
+
+    const berita = [
+      ['Jadwal Posyandu Bulan Juli','Pengumuman','Posyandu balita dan lansia diadakan setiap Selasa minggu pertama di balai dusun masing-masing.','19 Jun 2026','ti-calendar-event'],
+      ['Gotong Royong Bersih Sungai','Kegiatan','Seluruh warga diharapkan berpartisipasi dalam kerja bakti membersihkan aliran sungai Minggu pagi.','17 Jun 2026','ti-droplet'],
+      ['Pencairan BLT Dana Desa','Pengumuman','Penerima manfaat dapat mengambil bantuan di kantor desa dengan membawa KTP dan KK asli.','15 Jun 2026','ti-cash'],
+      ['Pelatihan UMKM Digital','Kegiatan','Pelatihan pemasaran online gratis bagi pelaku usaha desa, kuota terbatas 30 peserta.','12 Jun 2026','ti-device-laptop']
+    ];
+    const beritaColor = { Pengumuman:'bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-100', Kegiatan:'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400' };
+    document.getElementById('beritaGrid').innerHTML = berita.map(b => `
+      <article class="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 flex flex-col">
+        <div class="flex items-center justify-between mb-3">
+          <span class="grid place-items-center w-10 h-10 rounded-lg bg-brand-50 text-brand-600 dark:bg-brand-500/10"><i class="ti ${b[4]}"></i></span>
+          <span class="px-2 py-0.5 rounded-md text-xs ${beritaColor[b[1]]}">${b[1]}</span>
+        </div>
+        <h3 class="font-semibold leading-snug">${b[0]}</h3>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-2 flex-1">${b[2]}</p>
+        <div class="flex items-center justify-between mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <span class="text-xs text-slate-400"><i class="ti ti-clock text-sm align-middle"></i> ${b[3]}</span>
+          <button class="text-sm text-brand-600 dark:text-brand-400 hover:underline">Selengkapnya</button>
+        </div>
+      </article>`).join('');
+
+    // ============ CHART DUSUN (bar sederhana) ============
+    const dusun = [['Krajan',1180],['Sumber',940],['Tegal',810],['Gunung',720],['Sari',640],['Maju',522]];
+    const maxD = Math.max(...dusun.map(d => d[1]));
+    function renderDusun() {
+      document.getElementById('dusunChart').innerHTML = dusun.map(d => `
+        <div>
+          <div class="flex justify-between text-sm mb-1"><span>${d[0]}</span><span class="text-slate-400">${d[1].toLocaleString('id-ID')}</span></div>
+          <div class="h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+            <div class="h-full rounded-full bg-brand-500" style="width:${Math.round(d[1]/maxD*100)}%"></div>
+          </div>
+        </div>`).join('');
+    }
+
+    // ============ INIT ============
+    applyTheme(localStorage.getItem('villageTheme') || 'hijau');
+    const activeSw = swatches.querySelector(`[data-theme="${localStorage.getItem('villageTheme')||'hijau'}"]`);
+    activeSw?.querySelector('.ti-check').classList.remove('opacity-0');
+    renderDusun();
+    go('dashboard');
+  </script>
+</body>
+</html>

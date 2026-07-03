@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Brand color variables (RGB components for Tailwind opacity support) */
+  :root {
+    --brand-50:  236 253 245;
+    --brand-100: 209 250 229;
+    --brand-500: 16 185 129;
+    --brand-600: 5 150 105;
+    --brand-700: 4 120 87;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(120,120,120,.25);
+    border-radius: 6px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(120,120,120,.4);
+  }
+}
+
+@layer components {
+  /* ── Toggle switch ── */
+  .toggle {
+    @apply relative inline-flex flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200;
+    width: 40px; height: 22px;
+    background-color: rgb(203 213 225);
+  }
+  .dark .toggle { background-color: rgb(71 85 105); }
+  .toggle.on { background-color: rgb(var(--brand-600)); }
+  .toggle i {
+    @apply pointer-events-none inline-block bg-white rounded-full shadow transform transition-transform duration-200;
+    width: 14px; height: 14px;
+    margin-top: 2px; margin-left: 1px;
+  }
+  .toggle.on i { transform: translateX(18px); }
+
+  /* ── Toast ── */
+  .toast {
+    @apply fixed top-4 right-4 z-[9999] flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm font-medium text-white shadow-xl
+           opacity-0 pointer-events-none transition-all duration-300;
+    transform: translateY(-8px);
+    min-width: 200px;
+    background: #1e293b;
+  }
+  .toast.show { @apply opacity-100; transform: translateY(0); }
+  .toast.success { background-color: rgb(var(--brand-600)); }
+  .toast.error   { @apply bg-rose-600; }
+  .toast.info    { @apply bg-sky-600; }
+
+  /* ── Tabler icon size helper ── */
+  .ti { font-size: 1.125rem; line-height: 1; }
+}
