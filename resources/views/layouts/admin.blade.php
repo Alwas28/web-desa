@@ -495,6 +495,10 @@
                class="flex items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
               <i class="ti ti-user text-slate-400"></i> Profil Saya
             </a>
+            <a href="{{ route('profile.password') }}"
+               class="flex items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+              <i class="ti ti-lock text-slate-400"></i> Ubah Password
+            </a>
             <div class="border-t border-slate-100 dark:border-slate-800">
               <form method="POST" action="{{ route('logout') }}" class="m-0">
                 @csrf

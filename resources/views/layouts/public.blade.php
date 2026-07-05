@@ -112,7 +112,7 @@ header.site{position:sticky;top:0;z-index:60;background:var(--glass);backdrop-fi
 header.site.scrolled{box-shadow:var(--shadow)}
 .nav-wrap{display:flex;align-items:center;gap:14px;padding:12px 0}
 .brand{display:flex;align-items:center;gap:11px;margin-right:auto;text-decoration:none}
-.brand .logo{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,var(--green),var(--blue));display:grid;place-items:center;color:#fff;box-shadow:var(--shadow);flex-shrink:0;overflow:hidden}
+.brand .logo{width:46px;height:46px;border-radius:13px;background:transparent;display:grid;place-items:center;color:var(--green);flex-shrink:0;overflow:hidden}
 .brand .logo img{width:100%;height:100%;object-fit:contain}
 .brand b{font-size:1.02rem;letter-spacing:-.01em;line-height:1.2}
 .brand small{color:var(--muted);font-size:.72rem;font-weight:600;letter-spacing:.06em}
@@ -287,10 +287,18 @@ footer::before{content:"";position:absolute;inset:0;background-image:repeating-l
       <svg id="iconMoon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
       <svg id="iconSun" style="display:none" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M2 12h2.5M19.5 12H22M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>
     </button>
-    <a href="{{ route('login') }}" id="headerLogin" class="btn btn-blue" style="padding:10px 16px">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
-      <span class="login-text">Login</span>
-    </a>
+    @auth
+      @php $dashUrl = Auth::user()->roles()->exists() ? route('admin.dashboard') : route('portal'); @endphp
+      <a href="{{ $dashUrl }}" id="headerLogin" class="btn btn-primary" style="padding:10px 16px">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <span class="login-text">Dashboard</span>
+      </a>
+    @else
+      <a href="{{ route('login') }}" id="headerLogin" class="btn btn-blue" style="padding:10px 16px">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+        <span class="login-text">Login</span>
+      </a>
+    @endauth
     <button class="icon-btn" id="hamburger" aria-label="Buka menu" aria-expanded="false">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
     </button>
